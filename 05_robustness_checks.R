@@ -197,9 +197,9 @@ tri_fuzzy_rd <- function(rdd_obj, ord = NULL, bw = NULL){
     dat_step1 <- rdd_obj %>% model.matrix()
     bw <- rdd_bw_ik(rdd_obj)
     kernel_w <- Kernel_tri(dat_step1[,"x"], center=0, bw=bw)
-    dat_step1$d_right <- dat_step1$D * dat_step1$x # D*X interaction for second stage
+    #dat_step1$d_right <- dat_step1$D * dat_step1$x # D*X interaction for second stage
     
-    out <- ivreg(y ~ D + x + d_right | ins + x + x_right,
+    out <- ivreg(y ~ D + x + x_right | ins + x + x_right,
                  data = dat_step1,
                  weights = kernel_w) # 2SLS
     
@@ -210,9 +210,9 @@ tri_fuzzy_rd <- function(rdd_obj, ord = NULL, bw = NULL){
     dat_step1 <- rdd_obj %>% model.matrix(order = ord)
     bw <- rdd_bw_ik(rdd_obj)
     kernel_w <- Kernel_tri(dat_step1[,"x"], center=0, bw=bw)
-    dat_step1$d_right <- dat_step1$D * dat_step1$x # D*X interaction for second stage
+    #dat_step1$d_right <- dat_step1$D * dat_step1$x # D*X interaction for second stage
     
-    out <- ivreg(y ~ . - ins - x_right | - D - d_right,
+    out <- ivreg(y ~ D + x + x_right | ins + x + x_right,
                  data = dat_step1,
                  weights = kernel_w) # 2SLS
     
@@ -222,9 +222,9 @@ tri_fuzzy_rd <- function(rdd_obj, ord = NULL, bw = NULL){
     
     dat_step1 <- rdd_obj %>% model.matrix()
     kernel_w <- Kernel_tri(dat_step1[,"x"], center=0, bw=bw)
-    dat_step1$d_right <- dat_step1$D * dat_step1$x # D*X interaction for second stage
+    #dat_step1$d_right <- dat_step1$D * dat_step1$x # D*X interaction for second stage
     
-    out <- ivreg(y ~ D + x + d_right | ins + x + x_right,
+    out <- ivreg(y ~ D + x + x_right | ins + x + x_right,
                  data = dat_step1,
                  weights = kernel_w) # 2SLS
     
@@ -234,9 +234,9 @@ tri_fuzzy_rd <- function(rdd_obj, ord = NULL, bw = NULL){
     
     dat_step1 <- rdd_obj %>% model.matrix(order = ord)
     kernel_w <- Kernel_tri(dat_step1[,"x"], center=0, bw=bw)
-    dat_step1$d_right <- dat_step1$D * dat_step1$x # D*X interaction for second stage
+    #dat_step1$d_right <- dat_step1$D * dat_step1$x # D*X interaction for second stage
     
-    out <- ivreg(y ~ . - ins - x_right | - D - d_right,
+    out <- ivreg(y ~ D + x + x_right | ins + x + x_right,
                  data = dat_step1,
                  weights = kernel_w) # 2SLS
     

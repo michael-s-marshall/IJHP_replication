@@ -62,7 +62,7 @@ cbind(sr_d, sr_ins, sr_weights, per_1000_sr, dwellings_1000, soc_rent_units) %>%
   filter((sr_d == 1 & sr_ins == 1 & sr_weights > 0)) %>% 
   mutate(est = sr_est,
          pred = dwellings_1000 * sr_est) %>%
-  map_dbl(mean, na.rm = T) # pred = 61.25
+  map_dbl(mean, na.rm = T) # pred = 63.57
 
 ## Social rent starts by PRPs -------------------------------------------------
 
@@ -107,7 +107,7 @@ cbind(prp_d, prp_ins, prp_weights, per_1000_prp, dwellings_1000) %>%
     prp_soc_rent_units = per_1000_prp * dwellings_1000,
     est = prp_est,
     pred = dwellings_1000 * prp_est) %>%
-  map_dbl(mean, na.rm = T) # pred = 31.18
+  map_dbl(mean, na.rm = T) # pred = 30.18
 
 ## Social rent starts by LAs ------------------------------------------------
 
@@ -242,7 +242,6 @@ ggsave("working/viz/figurelateahp.jpeg",
 
 # density of forcing variable ---------------------------------------------------
 
-# median main 2019/20
 sr_df %>% 
   filter(Year == "2019-20") %>%
   ggplot(aes(x = afford_gap_median)) +

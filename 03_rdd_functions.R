@@ -22,13 +22,13 @@ my_fuzzy_rd <- function(rdd_obj, ord = NULL, bw = NULL){
     dat_step1 <- rdd_obj %>% model.matrix() # create RDD data object, as per RDDtools package
     bw <- rdd_bw_ik(rdd_obj, kernel = "Uniform") # identify bandwidth (bw) using Imbens and & Kalyanaraman
     kernel_w <- Kernel_uni(dat_step1[,"x"], center=0, bw=bw) # get uniform kernel weights
-    dat_step1$d_right <- dat_step1$D * dat_step1$x # D*X interaction for second stage
+    # dat_step1$d_right <- dat_step1$D * dat_step1$x # D*X interaction for second stage
     
     # 2SLS, first stage is excluded instrument and forcing variable predicting dummy for intervention participation
     # second stage is predictions of dummy for intervention participation predicting the outcome variable
     # x_right and d_right are interaction terms specifying whether observations are to the right of the cutoff
     # code is an adapted version of the rdd_reg_lm function in rddtools
-    out <- ivreg(y ~ D + x + d_right | ins + x + x_right, 
+    out <- ivreg(y ~ D + x + x_right | ins + x + x_right, 
                  data = dat_step1,
                  weights = kernel_w) 
     
@@ -40,9 +40,9 @@ my_fuzzy_rd <- function(rdd_obj, ord = NULL, bw = NULL){
     dat_step1 <- rdd_obj %>% model.matrix(order = ord)
     bw <- rdd_bw_ik(rdd_obj, kernel = "Uniform")
     kernel_w <- Kernel_uni(dat_step1[,"x"], center=0, bw=bw)
-    dat_step1$d_right <- dat_step1$D * dat_step1$x # D*X interaction for second stage
+    # dat_step1$d_right <- dat_step1$D * dat_step1$x # D*X interaction for second stage
     
-    out <- ivreg(y ~ . - ins - x_right | - D - d_right,
+    out <- ivreg(y ~ D + x + x_right | ins + x + x_right,
                  data = dat_step1,
                  weights = kernel_w) # 2SLS
     
@@ -53,9 +53,9 @@ my_fuzzy_rd <- function(rdd_obj, ord = NULL, bw = NULL){
     # as above but with researcher specified bandwidth (bw)
     dat_step1 <- rdd_obj %>% model.matrix()
     kernel_w <- Kernel_uni(dat_step1[,"x"], center=0, bw=bw)
-    dat_step1$d_right <- dat_step1$D * dat_step1$x # D*X interaction for second stage
+    # dat_step1$d_right <- dat_step1$D * dat_step1$x # D*X interaction for second stage
     
-    out <- ivreg(y ~ D + x + d_right | ins + x + x_right,
+    out <- ivreg(y ~ D + x + x_right | ins + x + x_right,
                  data = dat_step1,
                  weights = kernel_w) # 2SLS
     
@@ -65,9 +65,9 @@ my_fuzzy_rd <- function(rdd_obj, ord = NULL, bw = NULL){
     
     dat_step1 <- rdd_obj %>% model.matrix(order = ord)
     kernel_w <- Kernel_uni(dat_step1[,"x"], center=0, bw=bw)
-    dat_step1$d_right <- dat_step1$D * dat_step1$x # D*X interaction for second stage
+    # dat_step1$d_right <- dat_step1$D * dat_step1$x # D*X interaction for second stage
     
-    out <- ivreg(y ~ . - ins - x_right | - D - d_right,
+    out <- ivreg(y ~ D + x + x_right | ins + x + x_right,
                  data = dat_step1,
                  weights = kernel_w) # 2SLS
     
@@ -112,8 +112,8 @@ my_fuzzy_cov <- function(df, y, x, c, z, covs){
   # 2SLS as per the my_fuzzy_rd function
   bw <- rdd_bw_ik(ins_dat, kernel = "Uniform")
   kernel_w <- Kernel_uni(iv_dat[,"x"], center=0, bw=bw)
-  iv_dat$d_right <- iv_dat$D * iv_dat$x
-  iv_cov <- ivreg(y ~ . - ins - x_right | . - D - d_right,
+  # iv_dat$d_right <- iv_dat$D * iv_dat$x
+  iv_cov <- ivreg(y ~ . - ins | . - D,
                   data = iv_dat,
                   weights = kernel_w)
   

@@ -30,11 +30,8 @@ bw <- rdd_bw_ik(rdd_obj, kernel = "Uniform")
 # kernel weights, uniform kernel
 kernel_w <- Kernel_uni(dat_step1[,"x"], center=0, bw=bw)
 
-# D*X interaction for second stage
-dat_step1$d_right <- dat_step1$D * dat_step1$x 
-
 # 2SLS
-out <- ivreg(y ~ D + x + d_right | ins + x + x_right,
+out <- ivreg(y ~ D + x + x_right | ins + x + x_right,
              data = dat_step1,
              weights = kernel_w)
 
@@ -91,8 +88,7 @@ iv_dat %>% head(10)
 # 2SLS as per the my_fuzzy_rd function
 bw <- rdd_bw_ik(ins_dat, kernel = "Uniform")
 kernel_w <- Kernel_uni(iv_dat[,"x"], center=0, bw=bw)
-iv_dat$d_right <- iv_dat$D * iv_dat$x
-iv_cov <- ivreg(y ~ . - ins - x_right | . - D - d_right,
+iv_cov <- ivreg(y ~ . - ins | . - D,
                 data = iv_dat,
                 weights = kernel_w)
 
