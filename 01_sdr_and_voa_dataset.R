@@ -30,10 +30,9 @@ voa_16 <- voa_16 %>%
     `LA code` = `Area Code2`,
     area_name = Area
   ) %>% 
-  select(`LA code`, area_name, Mean, Median) %>%
+  select(`LA code`, area_name, Median) %>%
   mutate(
-    prs_mean_weekly = (Mean * 12) / 52.5,
-    prs_median_weekly = (Median * 12) / 52.5
+    prs_median_weekly = (Median * 12) / 52
   )
 
 merged_16 <- left_join(
@@ -47,7 +46,6 @@ merged_16 <- left_join(
   by = "LA code"
 ) %>% 
   mutate(
-    afford_gap_mean = prs_mean_weekly - weighted_rents,
     afford_gap_median = prs_median_weekly - weighted_rents,
     Year = as.factor("2015-16")
   )
@@ -86,10 +84,9 @@ voa_17 <- voa_17 %>%
     `LA code` = `Area Code2`,
     area_name = Area
   ) %>% 
-  select(`LA code`, area_name, Mean, Median) %>%
+  select(`LA code`, area_name, Median) %>%
   mutate(
-    prs_mean_weekly = (Mean * 12) / 52.5,
-    prs_median_weekly = (Median * 12) / 52.5
+    prs_median_weekly = (Median * 12) / 52
   )
 
 merged_17 <- left_join(
@@ -103,7 +100,6 @@ merged_17 <- left_join(
   by = "LA code"
   ) %>% 
   mutate(
-    afford_gap_mean = prs_mean_weekly - weighted_rents,
     afford_gap_median = prs_median_weekly - weighted_rents,
     Year = as.factor("2016-17")
     )
@@ -136,10 +132,9 @@ voa_18 <- voa_18 %>%
     `LA code` = `Area Code1`,
     area_name = Area
   ) %>% 
-  select(`LA code`, area_name, Mean, Median) %>%
+  select(`LA code`, area_name, Median) %>%
   mutate(
-    prs_mean_weekly = (Mean * 12) / 52.5,
-    prs_median_weekly = (Median * 12) / 52.5
+    prs_median_weekly = (Median * 12) / 52
   )
 
 merged_18 <- left_join(
@@ -153,7 +148,6 @@ merged_18 <- left_join(
   by = "LA code"
 ) %>% 
   mutate(
-    afford_gap_mean = prs_mean_weekly - weighted_rents,
     afford_gap_median = prs_median_weekly - weighted_rents,
     Year = as.factor("2017-18")
   )
@@ -186,13 +180,11 @@ voa_19 <- voa_19 %>%
     `LA code` = `Area Code1`,
     area_name = Area
   ) %>% 
-  select(`LA code`, area_name, Mean, Median) %>%
+  select(`LA code`, area_name, Median) %>%
   mutate(
-    Mean = parse_number(Mean),
     Median = parse_number(Median),
     # Isles of Scilly UA is parsing failure, missing data
-    prs_mean_weekly = (Mean * 12) / 52.5,
-    prs_median_weekly = (Median * 12) / 52.5
+    prs_median_weekly = (Median * 12) / 52
   )
 
 merged_19 <- left_join(
@@ -206,7 +198,6 @@ merged_19 <- left_join(
   by = "LA code"
 ) %>% 
   mutate(
-    afford_gap_mean = prs_mean_weekly - weighted_rents,
     afford_gap_median = prs_median_weekly - weighted_rents,
     Year = as.factor("2018-19")
   )
@@ -239,10 +230,9 @@ voa_20 <- voa_20 %>%
     `LA code` = `Area Code1`,
     area_name = Area
   ) %>% 
-  select(`LA code`, area_name, Mean, Median) %>%
+  select(`LA code`, area_name, Median) %>%
   mutate(
-    prs_mean_weekly = (Mean * 12) / 52.5,
-    prs_median_weekly = (Median * 12) / 52.5
+    prs_median_weekly = (Median * 12) / 52
   )
 
 merged_20 <- left_join(
@@ -256,7 +246,6 @@ merged_20 <- left_join(
   by = "LA code"
 ) %>% 
   mutate(
-    afford_gap_mean = prs_mean_weekly - weighted_rents,
     afford_gap_median = prs_median_weekly - weighted_rents,
     Year = as.factor("2019-20")
   )

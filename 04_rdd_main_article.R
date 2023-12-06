@@ -32,7 +32,7 @@ covariates <- cov_df %>%
   select(per_1000_private_starts_01,
          gdp_01, pop_growth_01, per_1000_sales_01)
 
-# social rent sans covariates
+# social rent w/out covariates
 sr_mod <- my_fuzzy_rd(sr_dat)
 
 # social rent with covariates
@@ -47,8 +47,8 @@ rdd_bw_ik(sr_dat, kernel = "Uniform")
 sr_cov$bw
 
 # absolute number of additional units for social rent rate ---------------------
-sr_d <- model.matrix(sr_dat)$D
-sr_ins <- model.matrix(sr_dat)$ins
+sr_d <- model.matrix(sr_dat)$D 
+sr_ins <- model.matrix(sr_dat)$ins 
 sr_weights <- Kernel_uni(model.matrix(sr_dat)[,"x"], center=0, 
                          bw=rdd_bw_ik(sr_dat))
 sr_est <- sr_cov$mod$coefficients["D"]
@@ -56,20 +56,13 @@ dwellings_1000 <- dat_1920$dwellings_1000
 soc_rent_units <- dat_1920$social_rent_units
 per_1000_sr <- dat_1920$per_1000_sr
 
-cbind(sr_d, sr_ins, sr_weights, per_1000_sr, dwellings_1000, 
-      soc_rent_units) %>% 
-  as_tibble() %>% 
-  filter((sr_d == 1 & sr_ins == 1 & sr_weights > 0)) %>% 
-  mutate(est = sr_est,
-         pred = dwellings_1000 * sr_est) %>% 
-  colSums()
-
+# average number of social rented units delivered in a treatment and compliant LA
 cbind(sr_d, sr_ins, sr_weights, per_1000_sr, dwellings_1000, soc_rent_units) %>% 
   as_tibble() %>% 
   filter((sr_d == 1 & sr_ins == 1 & sr_weights > 0)) %>% 
   mutate(est = sr_est,
          pred = dwellings_1000 * sr_est) %>%
-  map_dbl(mean, na.rm = T)
+  map_dbl(mean, na.rm = T) # pred = 61.25
 
 ## Social rent starts by PRPs -------------------------------------------------
 
@@ -106,15 +99,7 @@ prp_est <- prp_cov$mod$coefficients["D"]
 dwellings_1000 <- dat_1920$dwellings_1000
 per_1000_prp <- dat_1920$per_1000_prp
 
-cbind(prp_d, prp_ins, prp_weights, per_1000_prp, dwellings_1000) %>% 
-  as_tibble() %>% 
-  filter((prp_d == 1 & prp_ins == 1 & prp_weights > 0)) %>% 
-  mutate(
-    prp_soc_rent_units = per_1000_prp * dwellings_1000,
-    est = prp_est,
-    pred = dwellings_1000 * prp_est) %>% 
-  colSums()
-
+# average number of social rented units delivered by PRPs in a treatment and compliant LA
 cbind(prp_d, prp_ins, prp_weights, per_1000_prp, dwellings_1000) %>% 
   as_tibble() %>% 
   filter((prp_d == 1 & prp_ins == 1 & prp_weights > 0)) %>% 
@@ -122,7 +107,7 @@ cbind(prp_d, prp_ins, prp_weights, per_1000_prp, dwellings_1000) %>%
     prp_soc_rent_units = per_1000_prp * dwellings_1000,
     est = prp_est,
     pred = dwellings_1000 * prp_est) %>%
-  map_dbl(mean, na.rm = T)
+  map_dbl(mean, na.rm = T) # pred = 31.18
 
 ## Social rent starts by LAs ------------------------------------------------
 
@@ -261,13 +246,17 @@ ggsave("working/viz/figurelateahp.jpeg",
 sr_df %>% 
   filter(Year == "2019-20") %>%
   ggplot(aes(x = afford_gap_median)) +
-  geom_histogram(aes(y=..density..),bins = 80, alpha = .7, fill = "#28BBECFF",
+  geom_histogram(aes(y=after_stat(density)), bins = 80, alpha = .7,
+                 fill = "lightgrey",
                  colour = "black") +
-  labs(y = "Density",
-       x = "Affordability gap (GBP)") +
-  geom_vline(xintercept = 50, linetype = "dashed", size = 1.2,
+  geom_vline(xintercept = 50, linetype = "dashed", linewidth = 1.2, 
              colour = "black") +
-  theme_bw()
+  labs(y = "Density",
+       x = "Affordability gap (GBP)",
+       fill = "High pressure") +
+  theme_bw() +
+  theme(legend.position = "top") +
+  scale_fill_brewer(palette = "Dark2")
 
 ggsave("working/viz/figuredensityX.jpeg",
        width = 25,
@@ -293,7 +282,7 @@ sr_df %>%
   ggplot(aes(x = Year, y = per_1000_sr, 
              fill = fct_rev(Affordability))) +
   geom_col(position = "stack", colour = "black") +
-  scale_fill_manual(values = viridisLite::turbo(n = 5)[c(2,1)]) +
+  scale_fill_brewer(palette = "Dark2") +
   facet_wrap(~ha_la) +
   labs(y = "Social rent starts per 1,000 dwellings", fill = "Affordability",
        caption = "Social rent starts by year, affordability pressure and delivery source, excluding London. Source: DLUHC Live Table 1011S.") +

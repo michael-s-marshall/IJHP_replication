@@ -20,12 +20,12 @@ load("working/rdata/rent_gap_full.Rdata")
 
 df <- read_excel("data/affordable housing starts data.xlsx")
 
-# getting list of all local authorities ------------------------------------
+# getting list of all local authorities by year -------------------------------
 
 sr_df <- rent_gap_full %>% 
-  select(`LA code`, Year) %>% 
+  select(`LA code`, Year) %>% # Each observation is an LA within a year
   left_join(df %>% 
-              select(`LA code`,`Region name`) %>% 
+              select(`LA code`,`Region name`) %>% # joining region names
               unique(),
             by = "LA code")
 
@@ -35,33 +35,36 @@ sr_df <- rent_gap_full %>%
 left_join_summ <- function(data, data2, tenure, funding,
                            str_fund){
   
+  # string of tenure to name new variables
   str_ten <- tenure %>% 
     str_to_lower() %>% 
     str_replace_all(" ","_") %>% 
     str_c("_units")
   
-  if(missing(funding) & missing(str_fund)){
+  if(missing(funding) & missing(str_fund)){ # str_fund is a string for funder
     
+    # join starts data to list of LAs
     left_join(
       data, 
       data2 %>%
-        group_by(`LA code`, Year, Tenure) %>%
-        summarise({{str_ten}} := sum(Units), 
+        group_by(`LA code`, Year, Tenure) %>% # group starts data by LA, year and tenure
+        summarise({{str_ten}} := sum(Units), # summarise the number of starts by group and name variable by str_ten
                   .groups = "drop") %>%
-        filter(Tenure == tenure) %>% 
+        filter(Tenure == tenure) %>% # filter to tenure
         select(-Tenure),
       by = c("LA code", "Year")
     )
     
   } else {
     
-    str_var <- str_c(str_fund, str_ten)
+    # used for when the new variable measures starts by tenure and funder
+    str_var <- str_c(str_fund, str_ten) # string combining funder and tenure
     
     left_join(
       data, 
       data2 %>%
-        group_by(`LA code`, Year, LT1000, Tenure) %>%
-        summarise({{str_var}} := sum(Units), 
+        group_by(`LA code`, Year, LT1000, Tenure) %>% #LT1000 is funding source via DLUHC Live Table 1000
+        summarise({{str_var}} := sum(Units), # summarise the number of starts by group and name variable by str_var
                   .groups = "drop") %>%
         filter(Tenure == tenure & LT1000 == funding) %>% 
         select(-Tenure, -LT1000),
@@ -74,6 +77,15 @@ left_join_summ <- function(data, data2, tenure, funding,
   
 }
 
+# creating table using function above
+# each row in the table is an LA within a year
+# columns are social housing starts, with prefixes to signify whether starts are filtered to specific tenures and funders
+# prp = Private Registered Providers AKA housing associations
+# la = local authorities
+# he = Homes England
+# s106 = Section 106
+# other = Other funding e.g. self-finances from organisational reserves
+# table excludes local authorities with no starts by virtue of the join; these observations will subsequently be re-added
 first <- df %>% 
   group_by(`LA code`, `Region name`, Year) %>% 
   summarise(units = sum(Units),
@@ -107,11 +119,14 @@ first <- df %>%
   mutate(Year = as.factor(Year)) %>% 
   select(-`Region name`)
 
+# re-adding the ommitted LAs that had no starts
 sr_df <- first %>% 
   right_join(sr_df, by = c("LA code", "Year")) %>% 
   filter(`Region name` != "London")
 
 # turning NAs into zeros --------------------------------------
+
+# missing observations should be values of 0 to represent no housing delivered in the LA
 
 # variables with number of units
 units_vars <- sr_df %>% 
@@ -144,7 +159,7 @@ rm(test)
 
 # merging with 2016/17 rent gap i.e. forcing variable
 sr_df <- rent_gap_full %>% 
-  filter(Year == "2016-17") %>% 
+  filter(Year == "2016-17") %>% # affordability gap for 2016/17 only
   select(`LA code`, afford_gap_median) %>% 
   right_join(
     sr_df, by = "LA code"
@@ -197,6 +212,7 @@ these_dates <- str_c("Year ending ", ks , "-03-31")
 private_starts <- private_starts %>%
   rename(`LA code` = FeatureCode,
          private_starts = Value) %>%
+  # filtering to relevant years, and to starts by private developers
   filter((DateCode %in% these_dates)
          & `DCLG Test Housebuilding Tenure` == "Private Enterprise") %>%
   mutate(
@@ -240,7 +256,7 @@ sr_df <- sr_df %>%
               rename(`LA code` = `Local authority code`), 
             by = c("LA code", "Year"))
 
-## gdp per capita and gdp growth -----------------------------------------
+## gdp per capita  ------------------------------------------------------
 
 gdp <- read_excel("data/regionalgrossdomesticproductgdplocalauthorities.xlsx",
                   sheet = "Table 7",
@@ -269,23 +285,23 @@ sr_df <- sr_df %>%
 # creating variables for RDD and splitting by year ------------------------------
 
 sr_df <- sr_df %>%
-  mutate(dwellings_1000 = total_dwellings / 1000,
-         per_1000_ahp = units / dwellings_1000,
-         per_1000_sr = social_rent_units / dwellings_1000,
-         per_1000_sr_prp_he = prp_he_social_rent_units / dwellings_1000,
-         per_1000_sr_prp_other = prp_other_social_rent_units / dwellings_1000,
-         per_1000_prp = per_1000_sr_prp_he + per_1000_sr_prp_other,
-         per_1000_sr_la_he = la_he_social_rent_units / dwellings_1000,
-         per_1000_sr_la_other = la_other_social_rent_units / dwellings_1000,
-         per_1000_la = per_1000_sr_la_he + per_1000_sr_la_other,
-         per_1000_private_starts = private_starts / dwellings_1000,
-         per_1000_private_starts_01 = rescale01(per_1000_private_starts, na.rm = T),
-         per_1000_sales = sales / dwellings_1000,
-         per_1000_sales_01 = rescale01(per_1000_sales, na.rm = T),
-         gdp_01 = rescale01(gdp_per_capita, na.rm = T),
-         per_1000_he_funded = per_1000_sr_prp_he + per_1000_sr_la_he,
-         funded_binary = ifelse(per_1000_he_funded > 0, 1, 0),
-         treatment = ifelse(afford_gap_median >= 50, 1, 0))
+  mutate(dwellings_1000 = total_dwellings / 1000, # scaling quotient i.e. total dwellings divided by 1000
+         per_1000_ahp = units / dwellings_1000, # affordable housing starts per 1000
+         per_1000_sr = social_rent_units / dwellings_1000, # social rent starts per 1000
+         per_1000_sr_prp_he = prp_he_social_rent_units / dwellings_1000, # social rent starts by PRPs funded by HE per 1000
+         per_1000_sr_prp_other = prp_other_social_rent_units / dwellings_1000, # social rent starts by PRPs other funding per 1000
+         per_1000_prp = per_1000_sr_prp_he + per_1000_sr_prp_other, # social rent starts by PRPs per 1000
+         per_1000_sr_la_he = la_he_social_rent_units / dwellings_1000, # social rent starts by LAs funded by HE per 1000
+         per_1000_sr_la_other = la_other_social_rent_units / dwellings_1000, # social rent starts by LAs other funding per 1000
+         per_1000_la = per_1000_sr_la_he + per_1000_sr_la_other, # social rent starts by LAs per 1000
+         per_1000_private_starts = private_starts / dwellings_1000, # private starts per 1000
+         per_1000_private_starts_01 = rescale01(per_1000_private_starts, na.rm = T), # scaling private starts to range 0-1
+         per_1000_sales = sales / dwellings_1000, # private sales per 1000
+         per_1000_sales_01 = rescale01(per_1000_sales, na.rm = T), # scaling sales to range 0-1
+         gdp_01 = rescale01(gdp_per_capita, na.rm = T), # scaling gdp capita to range 0-1
+         per_1000_he_funded = per_1000_sr_prp_he + per_1000_sr_la_he, # HE funded social rent starts per 1000
+         funded_binary = ifelse(per_1000_he_funded > 0, 1, 0), # whether HA funding for capital grant was accessed in an LA i.e. a dummy variable that identifies actual participation of local authority i in the intervention
+         treatment = ifelse(afford_gap_median >= 50, 1, 0)) # binary variable for either side of cutoff
 
 # saving a dataset per year
 years_list <- sr_df %>% 
