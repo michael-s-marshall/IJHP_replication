@@ -130,6 +130,10 @@ summary_robust(prp_1617_cov$mod)
 rdd_bw_ik(prp_1617, kernel = "Uniform")
 prp_1617_cov$bw
 
+my_sensi_plot(prp_1617, 
+              prp_1617_mod,
+              ymin = -1, ymax = 1)
+
 ## Placebo with fictitious thresholds ------------------------------------------
 
 placebo_estimates <- list()
