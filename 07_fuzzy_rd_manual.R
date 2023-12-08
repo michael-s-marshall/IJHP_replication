@@ -43,16 +43,18 @@ rm(rdd_obj, dat_step1, bw, kernel_w, out)
 # my_fuzzy_cov manual demonstration -------------------------------------------
 
 cov_df <- dat_1920 %>% 
-  mutate(pop_growth_01 = rescale01(pop_growth_beta, na.rm = T)) %>%  
   select(afford_gap_median, per_1000_sr, per_1000_prp,
          per_1000_ahp, per_1000_la, per_1000_private_starts,
          funded_binary, per_1000_private_starts_01,
-         gdp_01, pop_growth_01, per_1000_sales_01) %>% 
+         earnings_01, households_01, household_change_01, 
+         per_1000_sales_01, social_rent_pct_01, 
+         pro_fin_pct_01, over_65_pct_01) %>% 
   na.omit()
 
 covariates <- cov_df %>% 
-  select(per_1000_private_starts_01,
-         gdp_01, pop_growth_01, per_1000_sales_01)
+  select(per_1000_private_starts_01, earnings_01, 
+         households_01, household_change_01, per_1000_sales_01,
+         social_rent_pct_01, pro_fin_pct_01, over_65_pct_01)
 
 # covariate dataset
 cov_dat <- rdd_data(

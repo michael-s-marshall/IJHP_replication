@@ -3,7 +3,6 @@ pacman::p_load(tidyverse, readxl, lubridate, jtools,
 
 rm(list = ls())
 
-load("working/rdata/dat_1516.Rdata")
 load("working/rdata/dat_1617.Rdata")
 load("working/rdata/dat_1718.Rdata")
 load("working/rdata/dat_1920.Rdata")

@@ -52,7 +52,7 @@ sr_d <- model.matrix(sr_dat)$D
 sr_ins <- model.matrix(sr_dat)$ins 
 sr_weights <- Kernel_uni(model.matrix(sr_dat)[,"x"], center=0, 
                          bw=rdd_bw_ik(sr_dat))
-sr_est <- sr_cov$mod$coefficients["D"]
+sr_est <- sr_mod$coefficients["D"]
 dwellings_1000 <- dat_1920$dwellings_1000
 soc_rent_units <- dat_1920$social_rent_units
 per_1000_sr <- dat_1920$per_1000_sr
@@ -63,7 +63,7 @@ cbind(sr_d, sr_ins, sr_weights, per_1000_sr, dwellings_1000, soc_rent_units) %>%
   filter((sr_d == 1 & sr_ins == 1 & sr_weights > 0)) %>% 
   mutate(est = sr_est,
          pred = dwellings_1000 * sr_est) %>%
-  map_dbl(mean, na.rm = T) # pred = 60.49
+  map_dbl(mean, na.rm = T) # pred = 56.81
 
 ## Social rent starts by PRPs -------------------------------------------------
 
@@ -96,7 +96,7 @@ prp_d <- model.matrix(prp_dat)$D
 prp_ins <- model.matrix(prp_dat)$ins
 prp_weights <- Kernel_uni(model.matrix(prp_dat)[,"x"], center=0,
                           bw=rdd_bw_ik(prp_dat))
-prp_est <- prp_cov$mod$coefficients["D"]
+prp_est <- prp_mod$coefficients["D"]
 dwellings_1000 <- dat_1920$dwellings_1000
 per_1000_prp <- dat_1920$per_1000_prp
 
@@ -108,7 +108,7 @@ cbind(prp_d, prp_ins, prp_weights, per_1000_prp, dwellings_1000) %>%
     prp_soc_rent_units = per_1000_prp * dwellings_1000,
     est = prp_est,
     pred = dwellings_1000 * prp_est) %>%
-  map_dbl(mean, na.rm = T) # pred = 30.22
+  map_dbl(mean, na.rm = T) # pred = 51.86
 
 ## Social rent starts by LAs ------------------------------------------------
 
