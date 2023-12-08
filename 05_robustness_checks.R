@@ -138,7 +138,7 @@ prp_1617_cov$bw
 # sensitivity plot for 2016/17
 my_sensi_plot(prp_1617, 
               prp_1617_mod,
-              ymin = -1, ymax = 1)
+              ymin = -2, ymax = 5)
 
 # checking result with full dataset for 2016/17 i.e. no bandwidth restriction
 dat_step1 <- prp_1617 %>% model.matrix() # create RDD data object, as per RDDtools package
@@ -146,52 +146,6 @@ out <- ivreg(y ~ D + x + x_right | ins + x + x_right,
              data = dat_step1) 
 summary_robust(out)
 rm(dat_step1, out)
-
-# HA social rent delivery 2015/16 --------------------------------------------
-
-# creating data
-prp_1516 <- rdd_data(
-  y = per_1000_prp,
-  x = afford_gap_median,
-  z = dat_1516$funded_binary,
-  data = dat_1516,
-  cutpoint = 50
-)
-
-# local linear model
-prp_1516_mod <- my_fuzzy_rd(prp_1516)
-
-cov_1516 <- dat_1516 %>% 
-  select(afford_gap_median, per_1000_sr, per_1000_prp,
-         per_1000_ahp, per_1000_la, per_1000_private_starts,
-         funded_binary, per_1000_private_starts_01, earnings_01, 
-         households_01, household_change_01, per_1000_sales_01,
-         social_rent_pct_01, pro_fin_pct_01, over_65_pct_pre19_01) %>% 
-  na.omit()
-
-covariates_1516 <- cov_1516 %>% 
-  select(per_1000_private_starts_01, earnings_01, 
-         households_01, household_change_01, per_1000_sales_01,
-         social_rent_pct_01, pro_fin_pct_01, over_65_pct_pre19_01)
-
-# with covariates
-prp_1516_cov <- my_fuzzy_cov(cov_1516, cov_1516$per_1000_prp,
-                             cov_1516$afford_gap_median, 50,
-                             cov_1516$funded_binary,
-                             covariates_1516)
-
-binned_rdplot(df = dat_1516, x = afford_gap_median, 
-              y = per_1000_prp, 
-              z = funded_binary, c = 50, bin_width = 5, 
-              lab_x = "Affordability gap (GBP)", 
-              lab_y = "Social rent starts by PRPs\nper 1,000 existing dwellings",
-              lab_colour = "Received Homes England grant", 
-              lab_caption = "Social rent starts by PRPs 2015/16 by treatment status. London local authorities are excluded.")
-
-summary_robust(prp_1516_mod)
-summary_robust(prp_1516_cov$mod)
-rdd_bw_ik(prp_1516, kernel = "Uniform")
-prp_1516_cov$bw
 
 # HA social rent delivery 2017/18 --------------------------------------------
 

@@ -193,7 +193,7 @@ f3a <- binned_rdplot(df = dat_1920, x = afford_gap_median,
                      lab_caption = NULL)
 
 f3b <- my_sensi_plot(prp_dat, prp_mod,
-                     ymin = -1, ymax = 1)
+                     ymin = -1, ymax = 2)
 
 f3a + f3b
 
