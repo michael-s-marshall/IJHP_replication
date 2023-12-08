@@ -289,13 +289,13 @@ households <- read_excel("data/2018basedhhpsprincipalprojection.xlsx",
                          sheet = "406",
                          range = "A5:AS374")
 
-households <- households %>% 
+household_change <- households %>% 
   rename(`LA code` = `Area code`) %>% 
-  mutate(`2015-16` = `2016` - `2011`,
-         `2016-17` = `2017` - `2012`,
-         `2017-18` = `2018` - `2013`,
-         `2018-19` = `2019` - `2014`,
-         `2019-20` = `2020` - `2015`) %>% 
+  mutate(`2015-16` = `2016`/`2011`,
+         `2016-17` = `2017`/`2012`,
+         `2017-18` = `2018`/`2013`,
+         `2018-19` = `2019`/`2014`,
+         `2019-20` = `2020`/`2015`) %>% 
   select(`LA code`, `2015-16`:`2019-20`) %>% 
   pivot_longer(
     `2015-16`:`2019-20`,
@@ -303,9 +303,23 @@ households <- households %>%
     values_to = "household_change"
   )
 
+households <- households %>% 
+  rename(`LA code` = `Area code`,
+         `2015-16` = `2016`,
+         `2016-17` = `2017`,
+         `2017-18` = `2018`,
+         `2018-19` = `2019`,
+         `2019-20` = `2020`) %>% 
+  select(`LA code`, `2015-16`:`2019-20`) %>% 
+  pivot_longer(
+    `2015-16`:`2019-20`,
+    names_to = "Year",
+    values_to = "households"
+  )
+
 sr_df <- sr_df %>% 
-  left_join(households, 
-            by = c("LA code", "Year"))
+  left_join(households, by = c("LA code","Year")) %>% 
+  left_join(household_change, by = c("LA code", "Year"))
 
 # social housing % -------------------------------------------
 
@@ -513,6 +527,7 @@ sr_df <- sr_df %>%
          per_1000_sales = sales / dwellings_1000, # private sales per 1000
          per_1000_sales_01 = rescale01(per_1000_sales, na.rm = T), # scaling sales to range 0-1
          earnings_01 = rescale01(earnings, na.rm = T),
+         households_01 = rescale01(households, na.rm = T),
          household_change_01 = rescale01(household_change, na.rm = T),
          social_rent_pct_01 = rescale01(social_rent_pct, na.rm = T),
          pro_fin_pct_01 = rescale01(pro_fin_pct, na.rm = T),
@@ -533,6 +548,7 @@ dat_1920 <- years_list[[5]] %>%
          per_1000_ahp,
          per_1000_private_starts, per_1000_private_starts_01,
          earnings, earnings_01,
+         households, households_01,
          household_change, household_change_01,
          per_1000_sales, per_1000_sales_01,
          social_rent_pct, social_rent_pct_01,
@@ -553,6 +569,7 @@ dat_1617 <- years_list[[2]] %>%
          per_1000_ahp,
          per_1000_private_starts, per_1000_private_starts_01,
          earnings, earnings_01,
+         households, households_01,
          household_change, household_change_01,
          per_1000_sales, per_1000_sales_01,
          social_rent_pct, social_rent_pct_01,
@@ -573,6 +590,7 @@ dat_1516 <- years_list[[1]] %>%
          per_1000_ahp,
          per_1000_private_starts, per_1000_private_starts_01,
          earnings, earnings_01,
+         households, households_01,
          household_change, household_change_01,
          per_1000_sales, per_1000_sales_01,
          social_rent_pct, social_rent_pct_01,
@@ -593,6 +611,7 @@ dat_1718 <- years_list[[3]] %>%
          per_1000_ahp,
          per_1000_private_starts, per_1000_private_starts_01,
          earnings, earnings_01,
+         households, households_01,
          household_change, household_change_01,
          per_1000_sales, per_1000_sales_01,
          social_rent_pct, social_rent_pct_01,

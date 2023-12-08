@@ -72,14 +72,14 @@ sr_1617_mod <- my_fuzzy_rd(sr_1617)
 cov_1617 <- dat_1617 %>% 
   select(afford_gap_median, per_1000_sr, per_1000_prp,
          per_1000_ahp, per_1000_la, per_1000_private_starts,
-         funded_binary, per_1000_private_starts_01,
-         earnings_01, household_change_01, per_1000_sales_01,
+         funded_binary, per_1000_private_starts_01, earnings_01, 
+         households_01, household_change_01, per_1000_sales_01,
          social_rent_pct_01, pro_fin_pct_01, over_65_pct_pre19_01) %>% 
   na.omit()
 
 covariates_1617 <- cov_1617 %>% 
-  select(per_1000_private_starts_01,
-         earnings_01, household_change_01, per_1000_sales_01,
+  select(per_1000_private_starts_01, earnings_01, 
+         households_01, household_change_01, per_1000_sales_01,
          social_rent_pct_01, pro_fin_pct_01, over_65_pct_pre19_01)
 
 # with covariates
@@ -164,14 +164,14 @@ prp_1516_mod <- my_fuzzy_rd(prp_1516)
 cov_1516 <- dat_1516 %>% 
   select(afford_gap_median, per_1000_sr, per_1000_prp,
          per_1000_ahp, per_1000_la, per_1000_private_starts,
-         funded_binary, per_1000_private_starts_01,
-         earnings_01, household_change_01, per_1000_sales_01,
+         funded_binary, per_1000_private_starts_01, earnings_01, 
+         households_01, household_change_01, per_1000_sales_01,
          social_rent_pct_01, pro_fin_pct_01, over_65_pct_pre19_01) %>% 
   na.omit()
 
 covariates_1516 <- cov_1516 %>% 
-  select(per_1000_private_starts_01,
-         earnings_01, household_change_01, per_1000_sales_01,
+  select(per_1000_private_starts_01, earnings_01, 
+         households_01, household_change_01, per_1000_sales_01,
          social_rent_pct_01, pro_fin_pct_01, over_65_pct_pre19_01)
 
 # with covariates
@@ -210,14 +210,14 @@ prp_1718_mod <- my_fuzzy_rd(prp_1718)
 cov_1718 <- dat_1718 %>% 
   select(afford_gap_median, per_1000_sr, per_1000_prp,
          per_1000_ahp, per_1000_la, per_1000_private_starts,
-         funded_binary, per_1000_private_starts_01,
-         earnings_01, household_change_01, per_1000_sales_01,
+         funded_binary, per_1000_private_starts_01, earnings_01, 
+         households_01, household_change_01, per_1000_sales_01,
          social_rent_pct_01, pro_fin_pct_01, over_65_pct_pre19_01) %>% 
   na.omit()
 
 covariates_1718 <- cov_1718 %>% 
-  select(per_1000_private_starts_01,
-         earnings_01, household_change_01, per_1000_sales_01,
+  select(per_1000_private_starts_01, earnings_01, 
+         households_01, household_change_01, per_1000_sales_01,
          social_rent_pct_01, pro_fin_pct_01, over_65_pct_pre19_01)
 
 # with covariates
