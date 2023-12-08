@@ -256,17 +256,18 @@ sr_df <- sr_df %>%
               rename(`LA code` = `Local authority code`), 
             by = c("LA code", "Year"))
 
-## median earnings  ------------------------------------------------
+## gdp per capita  ------------------------------------------------------
 
-earn <- read_csv("data/median_earnings.csv")
+gdp <- read_excel("data/regionalgrossdomesticproductgdplocalauthorities.xlsx",
+                  sheet = "Table 7",
+                  range = "A2:Z376")
 
-earn <- earn %>%
-  rename(`LA code` = `Local authority code`) %>% 
+gdp <- gdp %>% 
   select(`LA code`,`2016`:`2020`) %>% 
   pivot_longer(
     `2016`:`2020`,
     names_to = "Year",
-    values_to = "earnings"
+    values_to = "gdp_per_capita"
   ) %>% 
   mutate(
     Year = fct_recode(as.factor(Year),
@@ -278,222 +279,7 @@ earn <- earn %>%
   )
 
 sr_df <- sr_df %>% 
-  left_join(earn, 
-            by = c("LA code", "Year")) %>% 
-  mutate(earnings = parse_double(earnings))
-
-
-# household formation ------------------------------------------------
-
-households <- read_excel("data/2018basedhhpsprincipalprojection.xlsx",
-                         sheet = "406",
-                         range = "A5:AS374")
-
-households <- households %>% 
-  rename(`LA code` = `Area code`) %>% 
-  mutate(`2015-16` = `2016` - `2011`,
-         `2016-17` = `2017` - `2012`,
-         `2017-18` = `2018` - `2013`,
-         `2018-19` = `2019` - `2014`,
-         `2019-20` = `2020` - `2015`) %>% 
-  select(`LA code`, `2015-16`:`2019-20`) %>% 
-  pivot_longer(
-    `2015-16`:`2019-20`,
-    names_to = "Year",
-    values_to = "household_change"
-  )
-
-sr_df <- sr_df %>% 
-  left_join(households, 
-            by = c("LA code", "Year"))
-
-# social housing % -------------------------------------------
-
-soc_supply <- read_excel("data/subnationaldwellingsbytenure2021.xlsx",
-                         sheet = "2b",
-                         range = "A4:AR312")
-
-soc_supply <- soc_supply %>% 
-  rename(`LA code` = `Local authority code`) %>% 
-  select(`LA code`, contains("Social rent")) %>% 
-  select(-2, -3, -4, -5, -11) %>% 
-  rename(`2015-16` = 2,
-         `2016-17` = 3,
-         `2017-18` = 4,
-         `2018-19` = 5,
-         `2019-20` = 6) %>% 
-  pivot_longer(
-    `2015-16`:`2019-20`,
-    names_to = "Year",
-    values_to = "social_rent_pct"
-  )
-
-sr_df <- sr_df %>% 
-  left_join(soc_supply, 
-            by = c("LA code", "Year"))
-
-# industry ------------------------------------------------------
-
-indus_clean <- function(df, year_str){
-  
-  professional_clean <- function(df, year_str){
-    out <- df %>% 
-      filter(str_detect(Area,"ladu")) %>% 
-      rename(`LA code` = mnemonic,
-             professional = 15) %>% 
-      select(`LA code`:23) %>% 
-      pivot_longer(
-        cols = 2:22,
-        names_to = "industry",
-        values_to = "employment"
-      ) %>% 
-      group_by(`LA code`) %>% 
-      mutate(total_employment = sum(employment),
-             professional_pct = employment / total_employment,
-             Year = year_str) %>% 
-      ungroup() %>% 
-      filter(industry == "professional")
-    return(out)
-  }
-  
-  finance_clean <- function(df, year_str){
-    out <- df %>% 
-      filter(str_detect(Area,"ladu")) %>% 
-      rename(`LA code` = mnemonic,
-             finance = 13) %>% 
-      select(`LA code`:23) %>% 
-      pivot_longer(
-        cols = 2:22,
-        names_to = "industry",
-        values_to = "employment"
-      ) %>% 
-      group_by(`LA code`) %>% 
-      mutate(total_employment = sum(employment),
-             finance_pct = employment / total_employment,
-             Year = year_str) %>% 
-      ungroup() %>% 
-      filter(industry == "finance")
-    return(out)
-  }
-  
-  out1 <- professional_clean(df, year_str) %>% 
-    select(`LA code`, professional_pct, Year)
-  out2 <- finance_clean(df, year_str) %>% 
-    select(`LA code`, finance_pct, Year)
-  out3 <- left_join(out1, out2, by = c("LA code","Year")) %>% 
-    mutate(pro_fin_pct = professional_pct + finance_pct)
-  return(out3)
-}
-
-indus_2016 <- read_csv("data/2016_industry_employment.csv")
-indus_2016 <- indus_clean(indus_2016, "2015-16")
-
-indus_2017 <- read_csv("data/2017_industry_employment.csv")
-indus_2017 <- indus_clean(indus_2017, "2016-17")
-
-indus_2018 <- read_csv("data/2018_industry_employment.csv")
-indus_2018 <- indus_clean(indus_2018, "2017-18")
-
-indus_2019 <- read_csv("data/2019_industry_employment.csv")
-indus_2019 <- indus_clean(indus_2019, "2018-19")
-
-indus_2020 <- read_csv("data/2020_industry_employment.csv")
-indus_2020 <- indus_clean(indus_2020, "2019-20")
-
-indus_pct <- bind_rows(indus_2016, indus_2017, indus_2018, indus_2019, indus_2020)
-rm(indus_2016, indus_2017, indus_2018, indus_2019, indus_2020)
-
-sr_df <- sr_df %>% 
-  left_join(indus_pct, 
-            by = c("LA code", "Year"))
-
-# households over 65 -----------------------------------------------------------
-
-all_ages <- read_csv("data/la_all_ages.csv",
-                     na = c("-","NA"))
-
-all_ages_lad <- all_ages %>% 
-  rename(`LA code` = mnemonic) %>%
-  filter(str_detect(Area, "ladu")) %>% 
-  select(`LA code`, one_of(as.character(seq(2016,2020,1)))) %>% 
-  pivot_longer(
-    cols = `2016`:`2020`,
-    names_to = "year",
-    values_to = "total_pop"
-  ) %>% 
-  mutate(year = parse_double(year))
-
-all_ages_lad_pre19 <- all_ages %>% 
-  rename(`LA code` = mnemonic) %>%
-  filter(str_detect(Area, "ualad19")) %>% 
-  select(`LA code`, one_of(as.character(seq(2016,2020,1)))) %>% 
-  pivot_longer(
-    cols = `2016`:`2020`,
-    names_to = "year",
-    values_to = "total_pop"
-  ) %>% 
-  mutate(year = parse_double(year))
-
-all_ages <- full_join(
-  all_ages_lad,
-  all_ages_lad_pre19,
-  by = c("LA code","year"),
-  suffix = c("_post19","_pre19")
-)
-
-over_65 <- read_csv("data/la_aged_65plus.csv",
-                    na = c("-","NA"))
-
-over_65_lad <- over_65 %>% 
-  rename(`LA code` = mnemonic) %>%
-  filter(str_detect(Area, "ladu")) %>% 
-  select(`LA code`, one_of(as.character(seq(2016,2020,1)))) %>% 
-  pivot_longer(
-    cols = `2016`:`2020`,
-    names_to = "year",
-    values_to = "over_65"
-  ) %>% 
-  mutate(year = parse_double(year))
-
-over_65_lad_pre19 <- over_65 %>% 
-  rename(`LA code` = mnemonic) %>%
-  filter(str_detect(Area, "ualad19")) %>% 
-  select(`LA code`, one_of(as.character(seq(2016,2020,1)))) %>% 
-  pivot_longer(
-    cols = `2016`:`2020`,
-    names_to = "year",
-    values_to = "over_65"
-  ) %>% 
-  mutate(year = parse_double(year))
-
-over_65 <- full_join(
-  over_65_lad,
-  over_65_lad_pre19,
-  by = c("LA code","year"),
-  suffix = c("_post19","_pre19")
-)
-
-las_by_age <- all_ages %>% 
-  left_join(over_65, by = c("LA code","year")) %>% 
-  mutate(
-    over_65_pct_post19 = over_65_post19 / total_pop_post19,
-    over_65_pct_pre19 = over_65_pre19 / total_pop_pre19,
-  ) %>% 
-  select(`LA code`, year, contains("pct")) %>% 
-  mutate(
-    Year = fct_recode(as.factor(year),
-                      "2015-16" = "2016",
-                      "2016-17" = "2017",
-                      "2017-18" = "2018",
-                      "2018-19" = "2019",
-                      "2019-20" = "2020")
-  ) %>% 
-  select(-year)
-
-head(las_by_age, 10)
-
-sr_df <- sr_df %>% 
-  left_join(las_by_age, 
+  left_join(gdp, 
             by = c("LA code", "Year"))
 
 # creating variables for RDD and splitting by year ------------------------------
@@ -512,12 +298,7 @@ sr_df <- sr_df %>%
          per_1000_private_starts_01 = rescale01(per_1000_private_starts, na.rm = T), # scaling private starts to range 0-1
          per_1000_sales = sales / dwellings_1000, # private sales per 1000
          per_1000_sales_01 = rescale01(per_1000_sales, na.rm = T), # scaling sales to range 0-1
-         earnings_01 = rescale01(earnings, na.rm = T),
-         household_change_01 = rescale01(household_change, na.rm = T),
-         social_rent_pct_01 = rescale01(social_rent_pct, na.rm = T),
-         pro_fin_pct_01 = rescale01(pro_fin_pct, na.rm = T),
-         over_65_pct_01 = rescale01(over_65_pct_post19, na.rm = T),
-         over_65_pct_pre19_01 = rescale01(over_65_pct_pre19, na.rm = T),
+         gdp_01 = rescale01(gdp_per_capita, na.rm = T), # scaling gdp capita to range 0-1
          per_1000_he_funded = per_1000_sr_prp_he + per_1000_sr_la_he, # HE funded social rent starts per 1000
          funded_binary = ifelse(per_1000_he_funded > 0, 1, 0), # whether HA funding for capital grant was accessed in an LA i.e. a dummy variable that identifies actual participation of local authority i in the intervention
          treatment = ifelse(afford_gap_median >= 50, 1, 0)) # binary variable for either side of cutoff
@@ -528,17 +309,17 @@ years_list <- sr_df %>%
 
 # 2019/20 dataset for analysis
 dat_1920 <- years_list[[5]] %>% 
-  select(afford_gap_median, per_1000_sr,
-         per_1000_prp, per_1000_la,
+  select(afford_gap_median,
+         per_1000_sr,
+         per_1000_prp,
+         per_1000_la,
          per_1000_ahp,
-         per_1000_private_starts, per_1000_private_starts_01,
-         earnings, earnings_01,
-         household_change, household_change_01,
-         per_1000_sales, per_1000_sales_01,
-         social_rent_pct, social_rent_pct_01,
-         pro_fin_pct, pro_fin_pct_01,
-         over_65_pct_post19, over_65_pct_01,
-         over_65_pct_pre19, over_65_pct_pre19_01,
+         per_1000_private_starts,
+         per_1000_private_starts_01,
+         gdp_per_capita,
+         gdp_01,
+         per_1000_sales,
+         per_1000_sales_01,
          per_1000_he_funded,
          funded_binary,
          dwellings_1000,
@@ -548,17 +329,17 @@ dat_1920 <- years_list[[5]] %>%
 
 # 2016/17 dataset for analysis
 dat_1617 <- years_list[[2]] %>% 
-  select(afford_gap_median, per_1000_sr,
-         per_1000_prp, per_1000_la,
+  select(afford_gap_median,
+         per_1000_sr,
+         per_1000_prp,
+         per_1000_la,
          per_1000_ahp,
-         per_1000_private_starts, per_1000_private_starts_01,
-         earnings, earnings_01,
-         household_change, household_change_01,
-         per_1000_sales, per_1000_sales_01,
-         social_rent_pct, social_rent_pct_01,
-         pro_fin_pct, pro_fin_pct_01,
-         over_65_pct_post19, over_65_pct_01,
-         over_65_pct_pre19, over_65_pct_pre19_01,
+         per_1000_private_starts,
+         per_1000_private_starts_01,
+         gdp_per_capita,
+         gdp_01,
+         per_1000_sales,
+         per_1000_sales_01,
          per_1000_he_funded,
          funded_binary,
          dwellings_1000,
@@ -566,64 +347,86 @@ dat_1617 <- years_list[[2]] %>%
          `LA code`) %>% 
   filter(!is.na(afford_gap_median))
 
-# 2015-16 data
-dat_1516 <- years_list[[1]] %>% 
-  select(afford_gap_median, per_1000_sr,
-         per_1000_prp, per_1000_la,
-         per_1000_ahp,
-         per_1000_private_starts, per_1000_private_starts_01,
-         earnings, earnings_01,
-         household_change, household_change_01,
-         per_1000_sales, per_1000_sales_01,
-         social_rent_pct, social_rent_pct_01,
-         pro_fin_pct, pro_fin_pct_01,
-         over_65_pct_post19, over_65_pct_01,
-         over_65_pct_pre19, over_65_pct_pre19_01,
-         per_1000_he_funded,
-         funded_binary,
-         dwellings_1000,
-         social_rent_units,
-         `LA code`) %>% 
-  filter(!is.na(afford_gap_median))
+# population growth -----------------------------------------------------------
 
-# 2017/18 data 
-dat_1718 <- years_list[[3]] %>% 
-  select(afford_gap_median, per_1000_sr,
-         per_1000_prp, per_1000_la,
-         per_1000_ahp,
-         per_1000_private_starts, per_1000_private_starts_01,
-         earnings, earnings_01,
-         household_change, household_change_01,
-         per_1000_sales, per_1000_sales_01,
-         social_rent_pct, social_rent_pct_01,
-         pro_fin_pct, pro_fin_pct_01,
-         over_65_pct_post19, over_65_pct_01,
-         over_65_pct_pre19, over_65_pct_pre19_01,
-         per_1000_he_funded,
-         funded_binary,
-         dwellings_1000,
-         social_rent_units,
-         `LA code`) %>% 
-  filter(!is.na(afford_gap_median))
+pop <- read_csv("data/MYEB1_detailed_population_estimates_series_UK_(2020_geog21).csv")
 
-# NAs ------------------------------------------------------------------------
+my_group_sum <- function(df, group_var, summ_vars){
+  df %>% 
+    group_by({{group_var}}) %>% 
+    summarise(
+      across({{summ_vars}}, sum, na.rm = T, .names = "sum.{.col}")
+    )
+}
 
-dat_1920 %>% 
-  map_int(~sum(is.na(.)))
+pop1920 <- pop %>% 
+  my_group_sum(group_var = ladcode21, 
+               summ_vars = c(population_2010:population_2020)) %>% 
+  pivot_longer(sum.population_2010:sum.population_2020,
+               names_to = c("calc","year"),
+               values_to = "population",
+               names_sep = "_") %>% 
+  mutate(year = as.integer(year) - 2010)
 
-dat_1617 %>% 
-  map_int(~sum(is.na(.)))
+pop1920_nested <- pop1920 %>% 
+  select(-calc) %>% 
+  group_by(ladcode21) %>% 
+  nest()
 
-dat_1516 %>% 
-  map_int(~sum(is.na(.)))
+pop_model <- function(df) {
+  lm(population ~ year, data = df)
+}
 
-dat_1718 %>% 
-  map_int(~sum(is.na(.)))
+pop1920_nested <- pop1920_nested %>% 
+  mutate(model = map(data, pop_model))
+
+pop1920_nested <- pop1920_nested %>% 
+  mutate(model_tidy = map(model, broom::tidy))
+
+pop1920_growth <- pop1920_nested %>% 
+  unnest(model_tidy) %>% 
+  filter(term == "year") %>%
+  ungroup() %>% 
+  rename(pop_growth_beta = estimate,
+         `LA code` = ladcode21) %>% 
+  select(`LA code`, pop_growth_beta)
+
+dat_1920 <- dat_1920 %>% 
+  left_join(pop1920_growth, by = "LA code")
+
+pop1617 <- pop %>% 
+  my_group_sum(group_var = ladcode21, 
+               summ_vars = c(population_2007:population_2017)) %>% 
+  pivot_longer(sum.population_2007:sum.population_2017,
+               names_to = c("calc","year"),
+               values_to = "population",
+               names_sep = "_") %>% 
+  mutate(year = as.integer(year) - 2007)
+
+pop1617_nested <- pop1617 %>% 
+  select(-calc) %>% 
+  group_by(ladcode21) %>% 
+  nest()
+
+pop1617_nested <- pop1617_nested %>% 
+  mutate(model = map(data, pop_model))
+
+pop1617_nested <- pop1617_nested %>% 
+  mutate(model_tidy = map(model, broom::tidy))
+
+pop1617_growth <- pop1617_nested %>% 
+  unnest(model_tidy) %>% 
+  filter(term == "year") %>%
+  ungroup() %>% 
+  rename(pop_growth_beta = estimate,
+         `LA code` = ladcode21) %>% 
+  select(`LA code`, pop_growth_beta)
+
+dat_1617 <- dat_1617 %>% 
+  left_join(pop1617_growth, by = "LA code")
 
 # saving data --------------------------------------
 
 save(sr_df, file = "working/rdata/sr_df.Rdata")
 save(dat_1920, file = "working/rdata/dat_1920.Rdata")
 save(dat_1617, file = "working/rdata/dat_1617.Rdata")
-save(dat_1516, file = "working/rdata/dat_1516.Rdata")
-save(dat_1718, file = "working/rdata/dat_1718.Rdata")

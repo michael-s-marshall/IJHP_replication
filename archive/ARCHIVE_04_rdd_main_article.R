@@ -3,6 +3,7 @@ pacman::p_load(tidyverse, readxl, lubridate, jtools,
 
 rm(list = ls())
 
+load("working/rdata/dat_1617.Rdata")
 load("working/rdata/dat_1920.Rdata")
 load("working/rdata/sr_df.Rdata")
 source("03_rdd_functions.R")
@@ -20,17 +21,16 @@ sr_dat <- rdd_data(
 
 # data for covariates model
 cov_df <- dat_1920 %>% 
+  mutate(pop_growth_01 = rescale01(pop_growth_beta, na.rm = T)) %>%  
   select(afford_gap_median, per_1000_sr, per_1000_prp,
          per_1000_ahp, per_1000_la, per_1000_private_starts,
          funded_binary, per_1000_private_starts_01,
-         earnings_01, household_change_01, per_1000_sales_01,
-         social_rent_pct_01, pro_fin_pct_01, over_65_pct_01) %>% 
+         gdp_01, pop_growth_01, per_1000_sales_01) %>% 
   na.omit()
 
 covariates <- cov_df %>% 
   select(per_1000_private_starts_01,
-         earnings_01, household_change_01, per_1000_sales_01,
-         social_rent_pct_01, pro_fin_pct_01, over_65_pct_01)
+         gdp_01, pop_growth_01, per_1000_sales_01)
 
 # social rent w/out covariates
 sr_mod <- my_fuzzy_rd(sr_dat)
@@ -62,7 +62,7 @@ cbind(sr_d, sr_ins, sr_weights, per_1000_sr, dwellings_1000, soc_rent_units) %>%
   filter((sr_d == 1 & sr_ins == 1 & sr_weights > 0)) %>% 
   mutate(est = sr_est,
          pred = dwellings_1000 * sr_est) %>%
-  map_dbl(mean, na.rm = T) # pred = 59.57
+  map_dbl(mean, na.rm = T) # pred = 63.57
 
 ## Social rent starts by PRPs -------------------------------------------------
 
@@ -107,7 +107,7 @@ cbind(prp_d, prp_ins, prp_weights, per_1000_prp, dwellings_1000) %>%
     prp_soc_rent_units = per_1000_prp * dwellings_1000,
     est = prp_est,
     pred = dwellings_1000 * prp_est) %>%
-  map_dbl(mean, na.rm = T) # pred = 28.99
+  map_dbl(mean, na.rm = T) # pred = 30.18
 
 ## Social rent starts by LAs ------------------------------------------------
 

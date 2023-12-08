@@ -130,7 +130,7 @@ my_sensi_plot <- function(rdd_dat, rdd_obj,
                           ymin = NULL, ymax = NULL, caption = NULL){
   
   # sequence of bandwidths to loop over
-  is <- seq(2, 150, by = 0.1)
+  is <- seq(3, 150, by = 0.1)
   # empty vectors for loop output
   sensi_late <- sensi_ciu <- sensi_cil <- rep(NA, length(is))
   
