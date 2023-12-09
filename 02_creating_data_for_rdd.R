@@ -58,6 +58,24 @@ first <- df %>%
                 .groups = "drop"),
     by = c("LA code", "Year")
   ) %>% 
+  left_join(
+    df %>% 
+      filter(Tenure == "Social Rent" & 
+               LT1000 == "Private Registered Provider HE/GLA funded") %>% 
+      group_by(`LA code`, Year) %>% 
+      summarise(prp_grant_units = sum(Units, na.rm = T),
+                .groups = "drop"),
+    by = c("LA code", "Year")
+  ) %>%
+  left_join(
+    df %>% 
+      filter(Tenure == "Social Rent" & 
+               LT1000 == "Local Authority HE/GLA funded") %>% 
+      group_by(`LA code`, Year) %>% 
+      summarise(la_grant_units = sum(Units, na.rm = T),
+                .groups = "drop"),
+    by = c("LA code", "Year")
+  ) %>% 
   mutate(Year = as.factor(Year))
 
 # re-adding the ommitted LAs that had no starts
@@ -472,6 +490,8 @@ sr_df <- sr_df %>%
          per_1000_sr = social_rent_units / dwellings_1000, # social rent starts per 1000
          per_1000_prp = prp_units / dwellings_1000, # social rent starts by PRPs per 1000
          per_1000_la = la_units / dwellings_1000, # social rent starts by LAs per 1000
+         per_1000_prp_grant = prp_grant_units / dwellings_1000, # social rent delivered by PRPs and funded with grant, per 1000
+         per_1000_la_grant = la_grant_units / dwellings_1000, # social rent delivered by LAs and funded with grant, per 1000
          per_1000_private_starts = private_starts / dwellings_1000, # private starts per 1000
          per_1000_private_starts_01 = rescale01(per_1000_private_starts, na.rm = T), # scaling private starts to range 0-1
          per_1000_sales = sales / dwellings_1000, # private sales per 1000
@@ -493,7 +513,7 @@ years_list <- sr_df %>%
 dat_1920 <- years_list[[5]] %>% 
   select(afford_gap_median, per_1000_sr,
          per_1000_prp, per_1000_la,
-         per_1000_ahp,
+         per_1000_ahp, per_1000_prp_grant, per_1000_la_grant,
          per_1000_private_starts, per_1000_private_starts_01,
          earnings, earnings_01,
          households, households_01,
@@ -513,7 +533,7 @@ dat_1920 <- years_list[[5]] %>%
 dat_1617 <- years_list[[2]] %>% 
   select(afford_gap_median, per_1000_sr,
          per_1000_prp, per_1000_la,
-         per_1000_ahp,
+         per_1000_ahp, per_1000_prp_grant, per_1000_la_grant,
          per_1000_private_starts, per_1000_private_starts_01,
          earnings, earnings_01,
          households, households_01,
@@ -533,7 +553,7 @@ dat_1617 <- years_list[[2]] %>%
 dat_1718 <- years_list[[3]] %>% 
   select(afford_gap_median, per_1000_sr,
          per_1000_prp, per_1000_la,
-         per_1000_ahp,
+         per_1000_ahp, per_1000_prp_grant, per_1000_la_grant,
          per_1000_private_starts, per_1000_private_starts_01,
          earnings, earnings_01,
          households, households_01,

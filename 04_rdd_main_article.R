@@ -265,11 +265,11 @@ ggsave("working/viz/figuredensityX.jpeg",
 
 # lagged effect of treatment by provider -------------------------------------
 
-sr_df %>% 
+lagged <- sr_df %>% 
   filter(!is.na(afford_gap_median),
-         Year != "2020-21") %>% 
-  mutate(`HA delivery` = per_1000_prp,
-         `LA delivery` = per_1000_la,
+         !Year %in% c("2015-16","2020-21")) %>% 
+  mutate(`HA delivery` = per_1000_prp_grant,
+         `LA delivery` = per_1000_la_grant,
          Affordability = ifelse(afford_gap_median >= 50, "High pressure",
                                 "Not high pressure")) %>%
   select(`LA code`, Year, Affordability, `HA delivery`, `LA delivery`) %>% 
@@ -278,13 +278,15 @@ sr_df %>%
                values_to = "per_1000_sr") %>%
   group_by(Year, Affordability, ha_la) %>% 
   summarise(per_1000_sr = mean(per_1000_sr, na.rm = T),
-            .groups = "drop") %>% 
+            .groups = "drop")
+
+lagged %>% 
   ggplot(aes(x = Year, y = per_1000_sr, 
              fill = fct_rev(Affordability))) +
   geom_col(position = "stack", colour = "black") +
   scale_fill_brewer(palette = "Dark2") +
   facet_wrap(~ha_la) +
-  labs(y = "Social rent starts per 1,000 dwellings", fill = "Affordability",
+  labs(y = "Social rent starts funded by Homes England\nper 1,000 dwellings", fill = "Affordability",
        caption = "Social rent starts by year, affordability pressure and delivery source, excluding London. Source: DLUHC Live Table 1011S.") +
   theme_bw() +
   theme(legend.position = "top",
@@ -292,6 +294,19 @@ sr_df %>%
         plot.caption = element_text(hjust = 0))
 
 ggsave("working/viz/appendix_lagged_effect_barplot.jpeg")
+
+lagged %>% 
+  ggplot(aes(x = Year, y = per_1000_sr, 
+             fill = fct_rev(Affordability))) +
+  geom_col(position = "fill", colour = "black") +
+  scale_fill_brewer(palette = "Dark2") +
+  facet_wrap(~ha_la) +
+  labs(y = "Social rent starts funded by Homes England\nper 1,000 dwellings", fill = "Affordability",
+       caption = "Social rent starts by year, affordability pressure and delivery source, excluding London. Source: DLUHC Live Table 1011S.") +
+  theme_bw() +
+  theme(legend.position = "top",
+        plot.caption.position = "plot",
+        plot.caption = element_text(hjust = 0))
 
 # saving data ----------------------------------------------
 
