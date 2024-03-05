@@ -7,6 +7,28 @@ load("working/rdata/dat_1920.Rdata")
 load("working/rdata/sr_df.Rdata")
 source("03_rdd_functions.R")
 
+## summary statistics --------------------------------------------------
+
+vars <- dat_1920 %>% 
+  select(afford_gap_median:per_1000_ahp,
+         per_1000_private_starts, earnings, households,
+         household_change, per_1000_sales, social_rent_pct,
+         pro_fin_pct, over_65_pct_post19, funded_binary) %>% 
+  names()
+
+summary_stats <- dat_1920 %>% 
+  summarise(across(all_of(vars), list(mean = ~ mean(.x, na.rm = T), 
+                                      sd = ~ sd(.x, na.rm = T)),
+                   .names = "{.col}.{.fn}")) %>% 
+  pivot_longer(afford_gap_median.mean:funded_binary.sd,
+               names_to = c("variable", "stat"),
+               values_to = "out",
+               names_sep = "\\.")
+
+dat_1920 %>% 
+  count(funded_binary) %>% 
+  mutate(prop = round(n / sum(n), 3))
+
 ## models for social rent rate --------------------------------------------------
 
 # creating rdd data
@@ -326,6 +348,8 @@ lagged %>%
 
 # saving data ----------------------------------------------
 
+save(summary_stats, file = "working/rdata/summary_stats.Rdata")
+write.csv(summary_stats, file = "working/rdata/summary_stats.csv")
 save(sr_dat, file = "working/rdata/sr_dat.Rdata")
 save(prp_dat, file = "working/rdata/prp_dat.Rdata")
 save(las_dat, file = "working/rdata/las_dat.Rdata")
