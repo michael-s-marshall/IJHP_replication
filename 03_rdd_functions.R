@@ -77,6 +77,19 @@ my_fuzzy_rd <- function(rdd_obj, ord = NULL, bw = NULL){
   
 }
 
+# intention to treat estimate -------------------------------------------------
+
+itt_mod <- function(rdd_obj){
+  
+  dat_step1 <- rdd_obj %>% model.matrix() # create RDD data object, as per RDDtools package
+  bw <- rdd_bw_ik(rdd_obj, kernel = "Uniform") # identify bandwidth (bw) using Imbens and & Kalyanaraman
+  kernel_w <- Kernel_uni(dat_step1[,"x"], center=0, bw=bw)
+  
+  out <- lm(y ~ ins + x + x_right, data = dat_step1, weights = kernel_w)
+  return(out)
+  
+}
+
 # function for fuzzy RDD with covariates ---------------------------------------
 
 # NOTE: if you want to see how each step in the function below works manually
