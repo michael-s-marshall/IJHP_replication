@@ -17,8 +17,9 @@ vars <- dat_1920 %>%
   names()
 
 summary_stats <- dat_1920 %>% 
-  summarise(across(all_of(vars), list(mean = ~ mean(.x, na.rm = T), 
-                                      sd = ~ sd(.x, na.rm = T)),
+  summarise(across(all_of(vars), 
+                   list(mean = ~ mean(.x, na.rm = T),
+                        sd = ~ sd(.x, na.rm = T)),
                    .names = "{.col}.{.fn}")) %>% 
   pivot_longer(afford_gap_median.mean:funded_binary.sd,
                names_to = c("variable", "stat"),
