@@ -347,6 +347,77 @@ lagged %>%
         plot.caption.position = "plot",
         plot.caption = element_text(hjust = 0))
 
+# visualisation to show impact of scaling --------------------------------------
+
+dat_1920 %>% 
+  ggplot(aes(x = dwellings_1000 * 1000, social_rent_units)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm") +
+  labs(x = "Total existing dwellings", y = "New social rented homes (absolute units)",
+       caption = "New supply of social rented homes in absolute units by existing supply of dwellings in a local authority 2019/20.") +
+  theme_bw() +
+  theme(plot.caption.position = "plot",
+        plot.caption = element_text(hjust = 0))
+  
+ggsave("working/viz/new_supply_by_dwellings_no_scale.jpeg",
+       width = 25,
+       height = 16,
+       units = "cm")
+
+dat_1920 %>% 
+  ggplot(aes(x = dwellings_1000 * 1000, per_1000_sr)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm") +
+  labs(x = "Total existing dwellings", y = "New social rented homes per 1,000 existing dwellings",
+       caption = "New supply of social rented homes per 1,000 existing dwellings by existing supply of dwellings in a local authority 2019/20.") +
+  theme_bw() +
+  theme(plot.caption.position = "plot",
+        plot.caption = element_text(hjust = 0))
+
+ggsave("working/viz/new_supply_by_dwellings_scaled.jpeg",
+       width = 25,
+       height = 16,
+       units = "cm")
+
+cor(dat_1920$dwellings_1000, dat_1920$social_rent_units)
+
+cor(dat_1920$dwellings_1000, dat_1920$per_1000_sr)
+
+# fixed effects models ---------------------------------------------------
+
+pacman::p_load(lme4, lmerTest)
+
+panel_dat <- sr_df %>% 
+  filter(!is.na(afford_gap_median),
+         Year  != "2015-16")
+
+panel_dat <- panel_dat %>% 
+  mutate(`16/17` = ifelse(Year == "2016-17", 1, 0),
+         `17/18` = ifelse(Year == "2017-18", 1, 0),
+         `18/19` = ifelse(Year == "2018-19", 1, 0),
+         `19/20` = ifelse(Year == "2019-20", 1, 0)) %>%
+  rename(affordability_pressure = treatment,
+         affordability_gap = afford_gap_median)
+
+fix_mod <- lmer(per_1000_sr ~ 
+                  (affordability_pressure * `17/18`) +
+                  (affordability_pressure * `18/19`) +
+                  (affordability_pressure * `19/20`) +
+                  affordability_gap + (1|`LA code`),
+                data = panel_dat,
+                REML = FALSE)
+
+summary(fix_mod)
+
+fix_mod2 <- lmer(per_1000_sr ~
+                   `17/18` + `18/19` +
+                   (affordability_pressure * `19/20`) +
+                   affordability_gap + (1|`LA code`),
+                 data = panel_dat,
+                 REML = FALSE)
+
+summary(fix_mod2)
+
 # saving data ----------------------------------------------
 
 save(summary_stats, file = "working/rdata/summary_stats.Rdata")
