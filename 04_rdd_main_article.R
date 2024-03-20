@@ -90,7 +90,7 @@ cbind(sr_d, sr_ins, sr_weights, per_1000_sr, dwellings_1000, soc_rent_units) %>%
   filter((sr_d == 1 & sr_ins == 1 & sr_weights > 0)) %>% 
   mutate(est = sr_est,
          pred = dwellings_1000 * sr_est) %>%
-  map_dbl(mean, na.rm = T) # pred = 56.81
+  map_dbl(mean, na.rm = T) # pred = 58.70
 
 ## Social rent starts by PRPs -------------------------------------------------
 
@@ -139,7 +139,7 @@ cbind(prp_d, prp_ins, prp_weights, per_1000_prp, dwellings_1000) %>%
     prp_soc_rent_units = per_1000_prp * dwellings_1000,
     est = prp_est,
     pred = dwellings_1000 * prp_est) %>%
-  map_dbl(mean, na.rm = T) # pred = 51.86
+  map_dbl(mean, na.rm = T) # pred = 56.20
 
 ## Social rent starts by LAs ------------------------------------------------
 

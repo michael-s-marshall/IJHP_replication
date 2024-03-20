@@ -17,7 +17,7 @@ rdd_obj <- rdd_data(
 
 rdd_obj %>% head(10)
 
-# data for 2SKS
+# data for 2SLS
 dat_step1 <- rdd_obj %>% model.matrix()
 # y=outcome, D=funded_binary, x=affordability_gap_median, # x_right=ins*x, ins=dummy for either side of the cutoff
 dat_step1 %>% head(10) 
@@ -31,7 +31,7 @@ bw <- rdd_bw_ik(rdd_obj, kernel = "Uniform")
 kernel_w <- Kernel_uni(dat_step1[,"x"], center=0, bw=bw)
 
 # 2SLS
-out <- ivreg(y ~ D + x + x_right | ins + x + x_right,
+out <- ivreg(y ~ D + x + I(x^2) | ins + x + I(x^2),
              data = dat_step1,
              weights = kernel_w)
 
@@ -90,7 +90,7 @@ iv_dat %>% head(10)
 # 2SLS as per the my_fuzzy_rd function
 bw <- rdd_bw_ik(ins_dat, kernel = "Uniform")
 kernel_w <- Kernel_uni(iv_dat[,"x"], center=0, bw=bw)
-iv_cov <- ivreg(y ~ . - ins | . - D,
+iv_cov <- ivreg(y ~ . + I(x^2) - ins - x_right | . + I(x^2) - D - x_right,
                 data = iv_dat,
                 weights = kernel_w)
 
