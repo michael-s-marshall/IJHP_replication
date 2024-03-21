@@ -341,3 +341,46 @@ rescale01 <- function(x, ...) {
   (x - min(x, ...)) / ((max(x, ...)) - min(x, ...))
 }
 
+# fuzzy rdd with different functional forms ------------------------
+
+fuzzy_rd_fn <- function(rdd_obj, form = c("linear","quadratic","interaction")){
+  
+  if(form == "linear"){
+    
+    dat_step1 <- rdd_obj %>% model.matrix() 
+    bw <- rdd_bw_ik(rdd_obj, kernel = "Uniform") 
+    kernel_w <- Kernel_uni(dat_step1[,"x"], center=0, bw=bw) 
+    
+    out <- ivreg(y ~ D + x| ins + x, 
+                 data = dat_step1,
+                 weights = kernel_w) 
+    
+    return(out)
+    
+  } else if (form == "quadratic") {
+    
+    dat_step1 <- rdd_obj %>% model.matrix()
+    bw <- rdd_bw_ik(rdd_obj, kernel = "Uniform")
+    kernel_w <- Kernel_uni(dat_step1[,"x"], center=0, bw=bw)
+    
+    out <- ivreg(y ~ D + x + I(x^2) | ins + x + + I(x^2),
+                 data = dat_step1,
+                 weights = kernel_w) # 2SLS
+    
+    return(out)
+    
+  } else {
+    
+    dat_step1 <- rdd_obj %>% model.matrix()
+    bw <- rdd_bw_ik(rdd_obj, kernel = "Uniform")
+    kernel_w <- Kernel_uni(dat_step1[,"x"], center=0, bw=bw)
+    
+    out <- ivreg(y ~ D + x + x_right| ins + x + x_right,
+                 data = dat_step1,
+                 weights = kernel_w) # 2SLS
+    
+    return(out)
+    
+  }
+  
+}

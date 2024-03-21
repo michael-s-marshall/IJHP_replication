@@ -262,3 +262,25 @@ summary_robust(las_tri)
 rdd_bw_ik(las_dat, kernel = "Triangular")
 summary_robust(ahp_tri)
 rdd_bw_ik(ahp_dat, kernel = "Triangular")
+
+# other functional forms ------------------------------------
+
+# linear forms
+sr_lin <- fuzzy_rd_fn(sr_dat, form = "linear")
+summary_robust(sr_lin)
+prp_lin <- fuzzy_rd_fn(prp_dat, form = "linear")
+summary_robust(prp_lin)
+las_lin <- fuzzy_rd_fn(las_dat, form = "linear")
+summary_robust(las_lin)
+ahp_lin <- fuzzy_rd_fn(ahp_dat, form = "linear")
+summary_robust(ahp_lin)
+
+# interaction forms
+sr_int <- fuzzy_rd_fn(sr_dat, form = "interaction")
+summary_robust(sr_int)
+prp_int <- fuzzy_rd_fn(prp_dat, form = "interaction")
+summary_robust(prp_int)
+las_int <- fuzzy_rd_fn(las_dat, form = "interaction")
+summary_robust(las_int)
+ahp_int <- fuzzy_rd_fn(ahp_dat, form = "interaction")
+summary_robust(ahp_int)
