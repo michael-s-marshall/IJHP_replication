@@ -209,7 +209,7 @@ f2a <- binned_rdplot(df = dat_1920, x = afford_gap_median,
                      y = per_1000_sr, z = funded_binary, c = 50, bin_width = 5, 
                      lab_x = "Affordability gap (GBP)", 
                      lab_y = "Social rent starts\nper 1,000 existing dwellings",
-                     lab_colour = "Treatment status", 
+                     lab_colour = "Capital grant funded", 
                      lab_caption = NULL)
 f2b <- my_sensi_plot(sr_dat, sr_mod,
                      ymin = -1, ymax = 2)
@@ -228,7 +228,7 @@ f3a <- binned_rdplot(df = dat_1920, x = afford_gap_median,
                      y = per_1000_prp, z = funded_binary, c = 50, bin_width = 5, 
                      lab_x = "Affordability gap (GBP)", 
                      lab_y = "Social rent starts by HAs\nper 1,000 existing dwellings",
-                     lab_colour = "Treatment status", 
+                     lab_colour = "Capital grant funded", 
                      lab_caption = NULL)
 
 f3b <- my_sensi_plot(prp_dat, prp_mod,
@@ -247,7 +247,7 @@ f4a <- binned_rdplot(df = dat_1920, x = afford_gap_median,
                      y = per_1000_la, z = funded_binary, c = 50, bin_width = 5, 
                      lab_x = "Affordability gap (GBP)", 
                      lab_y = "Social rent starts by LAs\nper 1,000 existing dwellings",
-                     lab_colour = "Treatment status", 
+                     lab_colour = "Capital grant funded", 
                      lab_caption = NULL) +
   coord_cartesian(ylim = c(0,1))
 
@@ -267,7 +267,7 @@ f5a <- binned_rdplot(df = dat_1920, x = afford_gap_median,
                      y = per_1000_ahp, z = funded_binary, c = 50, bin_width = 5, 
                      lab_x = "Affordability gap (GBP)", 
                      lab_y = "Social housing starts\nper 1,000 existing dwellings",
-                     lab_colour = "Treatment status", 
+                     lab_colour = "Capital grant funded", 
                      lab_caption = NULL)
 
 f5b <- my_sensi_plot(ahp_dat, ahp_mod,
@@ -291,8 +291,7 @@ sr_df %>%
   geom_vline(xintercept = 50, linetype = "dashed", linewidth = 1.2, 
              colour = "black") +
   labs(y = "Density",
-       x = "Affordability gap (GBP)",
-       fill = "High pressure") +
+       x = "Affordability gap (GBP)") +
   theme_bw() +
   theme(legend.position = "top") +
   scale_fill_brewer(palette = "Dark2")
