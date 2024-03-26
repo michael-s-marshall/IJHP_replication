@@ -103,10 +103,6 @@ prp_dat <- rdd_data(
   cutpoint = 50
 )
 
-# social rent by PRPs intention to treat
-prp_itt <- itt_mod(prp_dat)
-summary(prp_itt)
-
 # social rent by PRPs sans covariates
 prp_mod <- my_fuzzy_rd(prp_dat)
 
@@ -152,10 +148,6 @@ las_dat <- rdd_data(
   cutpoint = 50
 )
 
-# social rent by LAs intention to treat
-las_itt <- itt_mod(las_dat)
-summary(las_itt)
-
 # social rent by LAs sans covariates
 las_mod <- my_fuzzy_rd(las_dat)
 
@@ -180,10 +172,6 @@ ahp_dat <- rdd_data(
   data = dat_1920,
   cutpoint = 50
 )
-
-# AHP intention to treat
-ahp_itt <- itt_mod(ahp_dat)
-summary(ahp_itt)
 
 # AHP starts sans covariates
 ahp_mod <- my_fuzzy_rd(ahp_dat)

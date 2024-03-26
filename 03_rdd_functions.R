@@ -85,7 +85,7 @@ itt_mod <- function(rdd_obj){
   bw <- rdd_bw_ik(rdd_obj, kernel = "Uniform") # identify bandwidth (bw) using Imbens and & Kalyanaraman
   kernel_w <- Kernel_uni(dat_step1[,"x"], center=0, bw=bw)
   
-  out <- lm(y ~ ins + x + I(x^2), data = dat_step1, weights = kernel_w)
+  out <- lm(D ~ ins + x + I(x^2), data = dat_step1, weights = kernel_w)
   return(out)
   
 }
