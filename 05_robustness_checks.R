@@ -17,41 +17,41 @@ source("03_rdd_functions.R")
 
 ## Robustness checks ----------------------------------------------------------
 
-## Placebo test - starts by private developers ------------------------------
+## Placebo test - median earnings ------------------------------
 
-pri_df <- dat_1920 %>% 
-  filter(!is.na(per_1000_private_starts))
+ern_df <- dat_1920 %>% 
+  filter(!is.na(earnings_01))
 
 # creating data
-pri_dat <- rdd_data(
-  y = per_1000_private_starts,
+ern_dat <- rdd_data(
+  y = earnings_01,
   x = afford_gap_median,
-  z = pri_df$funded_binary,
-  data = pri_df,
+  z = ern_df$funded_binary,
+  data = ern_df,
   cutpoint = 50
 )
 
 # local linear model
-pri_mod <- my_fuzzy_rd(pri_dat)
+ern_mod <- my_fuzzy_rd(ern_dat)
 
-# private starts with covariates
-pri_cov <- my_fuzzy_cov(cov_df, cov_df$per_1000_private_starts,
+# median earnings with covariates
+ern_cov <- my_fuzzy_cov(cov_df, cov_df$earnings_01,
                         cov_df$afford_gap_median, 50,
                         cov_df$funded_binary,
-                        covariates %>% select(-per_1000_private_starts_01))
+                        covariates %>% select(-earnings_01))
 
 binned_rdplot(df = dat_1920, x = afford_gap_median, 
-              y = per_1000_private_starts, 
+              y = earnings_01, 
               z = funded_binary, c = 50, bin_width = 5, 
               lab_x = "Affordability gap (GBP)", 
-              lab_y = "Private starts\nper 1,000 existing dwellings",
+              lab_y = "Median earnings (scaled 0-1)",
               lab_colour = "Received Homes England grant", 
-              lab_caption = "Private starts 2019/20 by treatment status. London local authorities are excluded.")
+              lab_caption = "Median earnings 2019/20 by treatment status. London local authorities are excluded.")
 
-summary_robust(pri_mod)
-summary_robust(pri_cov$mod)
-rdd_bw_ik(pri_dat, kernel = "Uniform")
-pri_cov$bw
+summary_robust(ern_mod)
+summary_robust(ern_cov$mod)
+rdd_bw_ik(ern_dat, kernel = "Uniform")
+ern_cov$bw
 
 ## Baseline 2016/17 Social Rent ----------------------------------------------
 
